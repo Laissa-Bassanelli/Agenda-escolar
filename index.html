@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agenda Escolar Flexível</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header><h1>Agenda Escolar</h1></header>
+
+<nav>
+  <label onclick="showPage('agenda')"><i class="fa-solid fa-calendar-days"></i>Agenda</label>
+  <label onclick="showPage('tarefas')"><i class="fa-solid fa-list-check"></i>Minhas Tarefas</label>
+  <label onclick="showPage('alunos')"><i class="fa-solid fa-users"></i>Meus Alunos</label>
+  <label id="menuPerfil" onclick="showPage('perfil')"><i class="fa-solid fa-user"></i><span id="nomeUsuarioMenu">Meu Perfil</span></label>
+  <label onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i>Sair</label>
+</nav>
+
+<div class="pages">
+  <!-- Login -->
+  <section id="login" class="active">
+    <h2>Login</h2>
+    <form id="loginForm">
+      <input type="email" id="loginEmail" placeholder="Email" required>
+      <input type="password" id="loginSenha" placeholder="Senha" required>
+      <p class="forgot-password" onclick="abrirModal('modalRecuperar')" style="color:#004080; cursor:pointer; text-align:center; margin-top:10px; text-decoration: underline;">
+        Esqueci a minha senha
+      </p>
+      <button type="submit">Entrar</button>
+    </form>
+    <p>Não tem cadastro? <a href="#" onclick="showPage('cadastro')">Cadastre-se</a></p>
+  </section>
+
+  <!-- Cadastro -->
+  <section id="cadastro">
+    <h2>Cadastro</h2>
+    <form id="cadastroForm">
+      <input type="text" id="cadNome" placeholder="Nome completo" required>
+      <input type="email" id="cadEmail" placeholder="Email" required>
+      <input type="password" id="cadSenha" placeholder="Senha" required minlength="6" maxlength="12">
+      <input type="password" id="cadConfirma" placeholder="Confirme a senha" required minlength="6" maxlength="12">
+      <p>Senha deve ter entre 6 e 12 caracteres.</p>
+      <button type="submit">Cadastrar</button>
+    </form>
+    <p>Já tem conta? <a href="#" onclick="showPage('login')">Fazer login</a></p>
+  </section>
+
+  <!-- Perfil -->
+  <section id="perfil">
+    <h2>Meu Perfil</h2>
+    <form id="perfilForm">
+      <label>Nome:</label>
+      <input type="text" id="perfilNome" required>
+      <label>Email:</label>
+      <input type="email" id="perfilEmail" required>
+      <label>Nova Senha:</label>
+      <input type="password" id="perfilSenha" minlength="6" maxlength="12" placeholder="Deixe em branco para não alterar">
+      <button type="submit">Salvar Alterações</button>
+    </form>
+  </section>
+
+  <!-- Agenda -->
+  <section id="agenda">
+    <h2>Agenda de Aulas</h2>
+    <form id="agendaForm">
+      <select id="dia" required>
+        <option value="">Selecione o dia</option>
+        <option>Segunda-feira</option>
+        <option>Terça-feira</option>
+        <option>Quarta-feira</option>
+        <option>Quinta-feira</option>
+        <option>Sexta-feira</option>
+        <option>Sábado</option>
+        <option>Domingo</option>
+      </select>
+      <input type="time" id="horaInicio" required>
+      <input type="time" id="horaFim" required>
+      <input type="text" id="aluno" placeholder="Nome do Aluno" required>
+      <input type="text" id="descricao" placeholder="Descrição da aula" required>
+      <button type="submit">Adicionar Aula</button>
+    </form>
+
+    <div class="filtros-agenda">
+      <div>
+        <label for="filtroDia">Filtrar por dia da semana:</label>
+        <select id="filtroDia" onchange="filtrarEAfins()">
+          <option value="">Mostrar todos</option>
+          <option>Segunda-feira</option>
+          <option>Terça-feira</option>
+          <option>Quarta-feira</option>
+          <option>Quinta-feira</option>
+          <option>Sexta-feira</option>
+          <option>Sábado</option>
+          <option>Domingo</option>
+        </select>
+      </div>
+      <div>
+        <label for="pesquisaAluno">Pesquisar por aluno:</label>
+        <input type="text" id="pesquisaAluno" placeholder="Digite o nome do aluno..." oninput="filtrarEAfins()">
+      </div>
+      <button type="button" onclick="limparFiltros()">Limpar Filtros</button>
+    </div>
+
+    <div class="lista-aulas"></div>
+  </section>
+
+  <!-- Tarefas -->
+  <section id="tarefas">
+    <h2>Minhas Tarefas</h2>
+    <form id="tarefasForm">
+      <input type="text" id="tarefaDesc" placeholder="Digite sua tarefa" >
+      <input type="date" id="tarefaData" >
+      <button type="submit">Adicionar Tarefa</button>
+    </form>
+    <ul id="listaTarefas"></ul>
+  </section>
+
+  <!-- ================= Alunos ================= -->
+<section id="alunos">
+  <h2>Meus Alunos</h2>
+  <button id="btnAddAluno">+ Adicionar Aluno</button>
+  <div class="lista-alunos"></div>
+</section>
+
+<!-- Modal Adicionar/Editar Aluno -->
+<div id="modalAluno" class="modal">
+  <div class="modal-content">
+    <span class="close-btn" onclick="fecharModal('modalAluno')">&times;</span>
+    <h2 id="tituloModalAluno">Aluno</h2>
+    <form id="formAluno" onsubmit="return false;">
+      <input type="text" id="editNome" placeholder="Nome do aluno" required>
+      <input type="email" id="editEmail" placeholder="Email">
+      <input type="text" id="editTelefone" placeholder="Telefone">
+      <input type="text" id="editObs" placeholder="Observações">
+      <button type="button" id="btnSalvarAluno">Salvar</button>
+    </form>
+  </div>
+</div>
+
+<footer><p>&copy; 2025 Agenda Escolar. Todos os direitos reservados.</p></footer>
+
+<!-- ================= Modais ================= -->
+<!-- Recuperar Senha -->
+<!-- ... (código anterior inalterado até o modal recuperar senha) ... -->
+
+<!-- ================= Modais ================= -->
+ <!-- Modal de Confirmação -->
+<div id="modalConfirm" class="modal">
+  <div class="modal-content">
+    <h2 id="confirmMsg">Tem certeza?</h2>
+    <div style="display:flex; justify-content:space-around; margin-top:15px;">
+      <button id="btnConfirmar">Confirmar</button>
+      <button onclick="fecharModal('modalConfirm')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Alerta -->
+<div id="modalAlert" class="modal">
+  <div class="modal-content">
+    <h2 id="alertMsg">Mensagem</h2>
+    <div style="text-align:center; margin-top:15px;">
+      <button onclick="fecharModal('modalAlert')">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- Recuperar Senha -->
+<div id="modalRecuperar" class="modal">
+  <div class="modal-content">
+    <span class="close-btn" onclick="fecharModal('modalRecuperar')">&times;</span>
+    <h2>Recuperar Senha</h2>
+    <p style="text-align:center; color:#555; font-size:14px; margin-bottom:10px;">
+      Crie uma nova senha para acessar a sua conta
+    </p>
+    <form id="formRecuperar" onsubmit="return false;">
+      <input type="password" id="novaSenha" placeholder="Nova senha" required minlength="6">
+      <input type="password" id="confirmarSenha" placeholder="Confirme a nova senha" required minlength="6">
+      <button type="button" onclick="salvarSenha()">Salvar</button>
+    </form>
+  </div>
+</div>
+
+<!-- Editar Aluno -->
+<div id="modalAluno" class="modal">
+  <div class="modal-content">
+    <span class="close-btn" onclick="fecharModal('modalAluno')">&times;</span>
+    <h2>Editar Aluno</h2>
+    <form id="formAluno" onsubmit="return false;">
+      <input type="text" id="editNome" placeholder="Nome do aluno" required>
+      <input type="email" id="editEmail" placeholder="Email" required>
+      <input type="text" id="editTelefone" placeholder="Telefone" required>
+      <input type="text" id="editObs" placeholder="Observações">
+      <button type="button" onclick="salvarAlunoEditado()">Salvar</button>
+    </form>
+  </div>
+</div>
+
+<!-- Editar Aula -->
+<div id="modalAula" class="modal">
+  <div class="modal-content">
+    <span class="close-btn" onclick="fecharModal('modalAula')">&times;</span>
+    <h2>Editar Aula</h2>
+    <form id="formAula" onsubmit="return false;">
+      <input type="text" id="editAlunoAula" placeholder="Nome do aluno" required>
+      <input type="text" id="editDescAula" placeholder="Descrição" required>
+      <input type="time" id="editHiAula" required>
+      <input type="time" id="editHfAula" required>
+      <select id="editDiaAula" required>
+        <option>Segunda-feira</option>
+        <option>Terça-feira</option>
+        <option>Quarta-feira</option>
+        <option>Quinta-feira</option>
+        <option>Sexta-feira</option>
+        <option>Sábado</option>
+        <option>Domingo</option>
+      </select>
+      <button type="button" id="btnSalvarAula">Salvar</button>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Adicionar/Editar Tarefa -->
+<div id="modalTarefa" class="modal">
+  <div class="modal-content">
+    <span class="close-btn" onclick="fecharModal('modalTarefa')">&times;</span>
+    <h2 id="tituloModalTarefa">Tarefa</h2>
+    <form id="formTarefa" onsubmit="return false;">
+      <input type="text" id="editDescTarefa" placeholder="Descrição" required>
+      <input type="date" id="editDataTarefa" required>
+      <button type="button" id="btnSalvarTarefa">Salvar</button>
+    </form>
+  </div>
+</div>
+
+<script src="js/script.js"></script>
+</body>
+</html>
